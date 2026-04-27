@@ -21,6 +21,7 @@
 - [การรัน Local](#การรัน-local)
 - [Docker](#docker)
 - [Kubernetes Deployment](#kubernetes-deployment)
+- [ตัวอย่าง Teams Notification](#ตัวอย่าง-teams-notification)
 - [Tests](#tests)
 - [Environment Variables](#environment-variables)
 
@@ -541,6 +542,61 @@ kubectl create job --from=cronjob/aws-cur-scheduler manual-$(date +%s) \
 
 kubectl logs -l app=aws-cur-scheduler -n cost-reporter-dev --tail=200
 ```
+
+---
+
+## ตัวอย่าง Teams Notification
+
+Card ที่ส่งเข้า Microsoft Teams ช่อง cost-alert:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  📊 AWS Cost Report — DEV                                   │
+│  26 Apr 2026                                                │
+├─────────────────────────────────────────────────────────────┤
+│  📅 วันที่          26 Apr 2026                             │
+│  🌍 Environment     dev                                     │
+│  💰 Cost วันนี้     $35.2289                                │
+│  📊 เดือนนี้รวม     $128.91 / $500                         │
+│  📈 ใช้ไปแล้ว       25.8%                                   │
+│  💵 คงเหลือ         $371.09                                 │
+│  📋 Line items      360                                     │
+├─────────────────────────────────────────────────────────────┤
+│  🟢 ▓▓▓▓▓░░░░░░░░░░░░░░░ 25.8%                             │
+├─────────────────────────────────────────────────────────────┤
+│  🏷️ Cost by Service                                        │
+│  AmazonEC2              $82.4216  64%  ████████████        │
+│  AmazonEKS              $36.4435  28%  █████               │
+│  AmazonVPC               $6.4223   5%                      │
+│  AmazonSageMaker          $1.4510   1%                      │
+│  AWSCodeCommit            $1.0000   1%                      │
+│  AmazonRDS                $0.8179   1%                      │
+│  AWSSecretsManager        $0.3457   0%                      │
+│  AmazonS3                 $0.0024   0%                      │
+├─────────────────────────────────────────────────────────────┤
+│  🔍 Top Resources                                           │
+│  1. [AmazonEC2] arn:aws:ec2:…/nat-gateway — $36.9041       │
+│     └ $0.059 per NAT Gateway Hour          24.00 Hrs       │
+│  2. [AmazonEKS] arn:aws:eks:…/cluster     — $36.4435       │
+│     └ Amazon EKS extended support usage   24.00 Hours      │
+│  3. [AmazonEC2] i-06d78de4d1d18758d (t2.xlarge) — $23.6664│
+│     └ $0.2336 per On Demand Linux t2.xlarge   24.00 Hrs   │
+├─────────────────────────────────────────────────────────────┤
+│  ⚠️ ต้องตรวจสอบ                                            │
+│  i-06d78de4d1d18758d — $82.1735                            │
+│    🟠 EC2 ไม่มี tag Name ไม่รู้ว่าใครสร้าง                │
+│    🟠 EC2 ไม่มี tag Owner ไม่มีคนรับผิดชอบ resource นี้   │
+│    🟠 EC2 ใช้ instance generation เก่า (t2)                │
+│    🟡 EC2 รัน 24hr ใน sandbox                              │
+│  arn:aws:ec2:…/nat-gateway — $36.8902                      │
+│    🟡 NAT Gateway มีค่า ~$32/เดือน                         │
+│  arn:aws:eks:…/cluster — $22.0161                          │
+│    🔴 EKS Extended Support $0.60/cluster/hr                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+> **Budget color:** 🟢 Good (<70%) · 🟡 Warning (≥70%) · 🔴 Attention (≥90%)
+> เมื่อถึง `alert_threshold_pct` จะมี 🚨 Alert Banner เพิ่มที่ด้านล่าง card
 
 ---
 
