@@ -1,0 +1,48 @@
+# ============================================================
+# PROD CONFIG
+# ใช้ IRSA (IAM Roles for Service Accounts) — ไม่ต้องใส่ key/secret
+# Teams webhook URL มาจาก K8s Secret
+# DB password มาจาก K8s Secret → env var APP_DATABASE_PASSWORD
+# ============================================================
+
+app:
+  env: prod
+  version: "0.1.0"
+
+aws:
+  region: ap-southeast-1
+  use_instance_profile: true   # ← IRSA / instance profile
+  # access_key_id and secret_access_key are NOT used in prod
+
+cur:
+  s3_bucket: "YOUR_S3_BUCKET_NAME"
+  s3_prefix: "YOUR_S3_PREFIX"
+  # local_path: ถ้าระบุ path นี้ จะอ่านจากไฟล์ local แทน S3
+  # local_path: "/tmp/cur-sample.csv.gz"
+
+teams:
+  # webhook_url comes from env: TEAMS_WEBHOOK_URL (K8s Secret)
+  timeout_sec: 20
+  enable_webhook: true
+
+budget:
+  limit_usd: 5000.0
+  alert_threshold_pct: 70.0
+
+report:
+  top_n_resources: 20
+
+log:
+  level: info
+  format: json
+
+database:
+  enabled: true              # ← true = บันทึก/ดึงข้อมูลจาก Supabase
+  host: "db.YOUR_SUPABASE_PROJECT.supabase.co"
+  port: 5432
+  database: "postgres"
+  user: "postgres"
+  # password comes from env: APP_DATABASE_PASSWORD (K8s Secret)
+  password: ""
+  sslmode: "require"
+  timeout_sec: 10

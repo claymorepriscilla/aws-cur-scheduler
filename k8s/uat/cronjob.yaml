@@ -1,0 +1,51 @@
+# ============================================================
+# k8s/uat/cronjob.yaml
+# CronJob for UAT environment
+# ============================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cost-reporter-uat
+  labels:
+    env: uat
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: aws-cur-scheduler
+  namespace: cost-reporter-uat
+  labels:
+    app: aws-cur-scheduler
+    env: uat
+spec:
+  schedule: "0 1 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            app: aws-cur-scheduler
+            env: uat
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: scheduler
+              image: ghcr.io/claymorepriscilla/aws-cur-scheduler:uat
+              imagePullPolicy: Always
+              envFrom:
+                - configMapRef:
+                    name: aws-cur-scheduler-config
+                - secretRef:
+                    name: aws-cur-scheduler-secret
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "128Mi"
+                limits:
+                  cpu: "500m"
+                  memory: "256Mi"

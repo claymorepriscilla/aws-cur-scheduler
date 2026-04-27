@@ -1,0 +1,80 @@
+# ============================================================
+# k8s/local/all-in-one.yaml
+# สำหรับทดสอบ k8s บนเครื่อง (minikube / kind / k3d)
+# ทุก config อยู่ในไฟล์เดียว — ไม่แยก Secret/ConfigMap
+# ⚠️  อย่า commit ไฟล์นี้พร้อมค่าจริง
+# ============================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cost-reporter
+  labels:
+    env: local
+---
+# ConfigMap + Secret รวมกันในไฟล์เดียวเพื่อความสะดวกใน local
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-cur-scheduler-config
+  namespace: cost-reporter
+data:
+  APP_ENV: "local"
+  APP_AWS_REGION: "ap-southeast-1"
+  APP_CUR_S3_BUCKET: "YOUR_S3_BUCKET_NAME"
+  APP_CUR_S3_PREFIX: "cur/aws-sandbox-cost-cur-daily"
+  APP_BUDGET_LIMIT_USD: "500"
+  APP_BUDGET_ALERT_THRESHOLD_PCT: "70"
+  APP_REPORT_TOP_N_RESOURCES: "15"
+  APP_LOG_LEVEL: "debug"
+  APP_LOG_FORMAT: "console"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aws-cur-scheduler-secret
+  namespace: cost-reporter
+type: Opaque
+stringData:
+  AWS_ACCESS_KEY_ID: "YOUR_ACCESS_KEY_ID"       # ← แก้ตรงนี้
+  AWS_SECRET_ACCESS_KEY: "YOUR_SECRET_ACCESS_KEY" # ← แก้ตรงนี้
+  TEAMS_WEBHOOK_URL: "YOUR_TEAMS_WEBHOOK_URL"    # ← แก้ตรงนี้
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: aws-cur-scheduler
+  namespace: cost-reporter
+  labels:
+    app: aws-cur-scheduler
+    env: local
+spec:
+  schedule: "0 1 * * *"   # 08:00 Bangkok (UTC+7 = 01:00 UTC)
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: aws-cur-scheduler
+            env: local
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: scheduler
+              image: aws-cur-scheduler:local
+              imagePullPolicy: Never   # local image
+              envFrom:
+                - configMapRef:
+                    name: aws-cur-scheduler-config
+                - secretRef:
+                    name: aws-cur-scheduler-secret
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "128Mi"
+                limits:
+                  cpu: "500m"
+                  memory: "256Mi"

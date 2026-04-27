@@ -1,0 +1,22 @@
+repos:
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+
+# Optional: add a local hook to prevent accidental commits of configs/local.yaml
+  - repo: local
+    hooks:
+      - id: prevent-local-config-commit
+        name: Prevent committing local.yaml
+        entry: "bash -c 'if git diff --cached --name-only | grep -q \"^configs/local.yaml$\"; then echo \"ERROR: Do not commit configs/local.yaml (contains secrets)\"; exit 1; fi'"
+        language: system
+        stages: [pre-commit]

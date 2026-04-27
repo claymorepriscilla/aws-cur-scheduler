@@ -1,0 +1,51 @@
+# ============================================================
+# k8s/dev/cronjob.yaml
+# CronJob for DEV environment
+# ============================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cost-reporter-dev
+  labels:
+    env: dev
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: aws-cur-scheduler
+  namespace: cost-reporter-dev
+  labels:
+    app: aws-cur-scheduler
+    env: dev
+spec:
+  schedule: "0 1 * * *"    # 08:00 Bangkok = 01:00 UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400   # clean up after 24h
+      template:
+        metadata:
+          labels:
+            app: aws-cur-scheduler
+            env: dev
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: scheduler
+              image: ghcr.io/claymorepriscilla/aws-cur-scheduler:dev
+              imagePullPolicy: Always
+              envFrom:
+                - configMapRef:
+                    name: aws-cur-scheduler-config
+                - secretRef:
+                    name: aws-cur-scheduler-secret
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "128Mi"
+                limits:
+                  cpu: "500m"
+                  memory: "256Mi"

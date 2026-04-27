@@ -1,0 +1,48 @@
+# ============================================================
+# DEV CONFIG
+# Secrets (aws keys, webhook url, db password) injected via
+# K8s Secret → env var or APP_* prefix overrides
+# ============================================================
+
+app:
+  env: dev
+  version: "0.1.0"
+
+aws:
+  region: ap-southeast-1
+  use_instance_profile: false
+  # access_key_id & secret_access_key come from env:
+  #   AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY
+
+cur:
+  s3_bucket: "YOUR_S3_BUCKET_NAME"
+  s3_prefix: "YOUR_S3_PREFIX"
+  # local_path: ถ้าระบุ path นี้ จะอ่านจากไฟล์ local แทน S3
+  # local_path: "/tmp/cur-sample.csv.gz"
+
+teams:
+  # webhook_url comes from env: TEAMS_WEBHOOK_URL
+  timeout_sec: 15
+  enable_webhook: true
+
+budget:
+  limit_usd: 500.0
+  alert_threshold_pct: 70.0
+
+report:
+  top_n_resources: 15
+
+log:
+  level: debug
+  format: json
+
+database:
+  enabled: true              # ← true = บันทึก/ดึงข้อมูลจาก Supabase
+  host: "db.YOUR_SUPABASE_PROJECT.supabase.co"
+  port: 5432
+  database: "postgres"
+  user: "postgres"
+  # password comes from env: APP_DATABASE_PASSWORD
+  password: ""
+  sslmode: "require"
+  timeout_sec: 10

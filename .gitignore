@@ -1,32 +1,61 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
-# Binaries for programs and plugins
+# ============================================================
+# .gitignore — aws-cur-scheduler
+# ============================================================
+
+# ── Go build artifacts ──────────────────────────────────────
+/bin/
+/dist/
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
+aws-cur-scheduler
 
-# Test binary, built with `go test -c`
+# Test artifacts
 *.test
-
-# Code coverage profiles and other test artifacts
 *.out
-coverage.*
-*.coverprofile
-profile.cov
+coverage.html
+coverage.out
+profile.out
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
-
-# Go workspace file
-go.work
-go.work.sum
-
-# env file
+# ── Config files with real secrets ─────────────────────────
+# IMPORTANT: Never commit local.yaml — it contains real credentials
+configs/local.yaml
+configs/local.yaml.secret
+configs/*.override.yaml
 .env
+.env.*
+!.env.example
+.env.local.example
 
-# Editor/IDE
-# .idea/
-# .vscode/
+# Note: keep `configs/*.example` in repo as templates. Do NOT commit real secrets.
+
+# ── Go module cache / vendor ────────────────────────────────
+vendor/
+
+# ── IDE / Editor ────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Logs ────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Docker ──────────────────────────────────────────────────
+.docker/
+
+# ── Kubernetes secrets (never commit real secrets) ──────────
+k8s/**/secret.yaml
+k8s/**/*-secret.yaml
+!k8s/**/secret.yaml.example
+
+# ── Temporary files ─────────────────────────────────────────
+tmp/
+temp/
+*.tmp

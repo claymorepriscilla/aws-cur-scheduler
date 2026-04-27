@@ -1,0 +1,73 @@
+# ============================================================
+# k8s/prod/cronjob.yaml
+# CronJob for PROD — uses IRSA (IAM Roles for Service Accounts)
+# ============================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cost-reporter-prod
+  labels:
+    env: prod
+---
+# ServiceAccount annotated with IRSA role ARN
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: aws-cur-scheduler-sa
+  namespace: cost-reporter-prod
+  annotations:
+    # Replace with your actual IAM Role ARN
+    eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/aws-cur-scheduler-prod-role"
+  labels:
+    app: aws-cur-scheduler
+    env: prod
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: aws-cur-scheduler
+  namespace: cost-reporter-prod
+  labels:
+    app: aws-cur-scheduler
+    env: prod
+spec:
+  schedule: "0 1 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            app: aws-cur-scheduler
+            env: prod
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: aws-cur-scheduler-sa   # ← IRSA
+          containers:
+            - name: scheduler
+              image: ghcr.io/claymorepriscilla/aws-cur-scheduler:latest
+              imagePullPolicy: Always
+              envFrom:
+                - configMapRef:
+                    name: aws-cur-scheduler-config
+                - secretRef:
+                    name: aws-cur-scheduler-secret
+              resources:
+                requests:
+                  cpu: "200m"
+                  memory: "256Mi"
+                limits:
+                  cpu: "500m"
+                  memory: "512Mi"
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                runAsUser: 65532
+                capabilities:
+                  drop:
+                    - ALL

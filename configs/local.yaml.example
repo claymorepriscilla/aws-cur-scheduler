@@ -1,0 +1,45 @@
+# ============================================================
+# LOCAL CONFIG EXAMPLE — ใช้เป็นเทมเพลตเท่านั้น
+# อย่า commit ค่านี้เป็นความจริงลงใน repo
+# ============================================================
+
+app:
+  env: local
+  version: "0.1.0"
+
+aws:
+  region: ap-southeast-1
+  access_key_id: "YOUR_AWS_ACCESS_KEY_ID"
+  secret_access_key: "YOUR_AWS_SECRET_ACCESS_KEY"
+  use_instance_profile: false
+
+cur:
+  s3_bucket: "YOUR_S3_BUCKET_NAME"
+  s3_prefix: "cur/aws-sandbox-cost-cur-daily"
+  # local_path: "/path/to/local/cur.csv.gz"  # optional for local testing
+
+teams:
+  webhook_url: "YOUR_TEAMS_WEBHOOK_URL"
+  timeout_sec: 15
+  enable_webhook: false
+
+budget:
+  limit_usd: 500.0
+  alert_threshold_pct: 70.0
+
+report:
+  top_n_resources: 15
+
+log:
+  level: debug
+  format: console
+
+database:
+  enabled: false
+  host: ""
+  port: 5432
+  database: ""
+  user: ""
+  password: ""
+  sslmode: "require"
+  timeout_sec: 10
